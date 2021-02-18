@@ -8,3 +8,7 @@ If you have already purchased the game, you can simply drop these files into the
 4. Highlight the "Manage" menu, and click "Browse local files"
 5. The folder that Steam opens is the game's installation directory
     * You can drop `game.py` and `universal.py` in this folder, and then you can simply double-click `game.py` to play!
+
+This open source game engine should work on any platform (not just Windows). To run it on non-Windows operating systems, you may need to comment out [line 220 of `game.py`](game.py#L220), which I believe uses Windows-specific commands to make the window full-screen.
+
+Enjoy :-)
