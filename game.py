@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from glob import glob
-from os import add_dll_directory, getcwd, makedirs
+from os import getcwd, makedirs
 from os.path import dirname, exists
 from pickle import dump as pdump
 from pickle import load as pload
