@@ -13,19 +13,34 @@ APP_STYLE = DEFAULT_STYLE
 LESSON_DATA = list()
 SAVE_DATA = None
 
+# generate a blank save file
+def blank_save():
+    return {'completed':[[[False for s in l['steps']] for l in m['lessons']] for m in LESSON_DATA], 'style':APP_STYLE}
+
 # save the save data to file
 def save_game():
+    global SAVE_DATA
     if SAVE_DATA is None:
-        raise RuntimeError("Save data is None")
+        SAVE_DATA = blank_save()
     f = open(SAVE_FILE_PATH,'wb'); pdump(SAVE_DATA,f); f.close()
 
 # check if lesson (subchapter) is completed
 def is_lesson_completed(module_ind, lesson_ind):
-    return sum(SAVE_DATA['completed'][module_ind][lesson_ind]) == len(SAVE_DATA['completed'][module_ind][lesson_ind])
+    global SAVE_DATA
+    try:
+        return sum(SAVE_DATA['completed'][module_ind][lesson_ind]) == len(SAVE_DATA['completed'][module_ind][lesson_ind])
+    except:
+        SAVE_DATA = blank_save(); save_game()
+        return False
 
 # check if module (chapter) is completed
 def is_module_completed(module_ind):
-    return sum(is_lesson_completed(module_ind,l) for l in range(len(SAVE_DATA['completed'][module_ind]))) == len(SAVE_DATA['completed'][module_ind])
+    global SAVE_DATA
+    try:
+        return sum(is_lesson_completed(module_ind,l) for l in range(len(SAVE_DATA['completed'][module_ind]))) == len(SAVE_DATA['completed'][module_ind])
+    except:
+        SAVE_DATA = blank_save(); save_game()
+        return False
 
 # under construction app (returns None)
 def under_construction_app(title=UNDER_CONSTRUCTION_TITLE, text=UNDER_CONSTRUCTION_MESSAGE):
@@ -77,13 +92,18 @@ def run_lesson_module(module_ind, text=LESSON_TEXT):
 
 # run a selected lesson (aka subchapter)
 def run_lesson(module_ind, lesson_ind):
+    global SAVE_DATA
     if module_ind is None or lesson_ind is None:
         return
     lesson = LESSON_DATA[module_ind]['lessons'][lesson_ind]
     if len(lesson['steps']) == 0:
         message_dialog(title=lesson['lesson_name'], text=EMPTY_LESSON_TEXT, style=APP_STYLE).run()
     elif len(lesson['steps']) == 1:
-        SAVE_DATA['completed'][module_ind][lesson_ind][0] = True; save_game()
+        try:
+            SAVE_DATA['completed'][module_ind][lesson_ind][0] = True
+        except:
+            SAVE_DATA = blank_save(); SAVE_DATA['completed'][module_ind][lesson_ind][0] = True
+        save_game()
         button_dialog(title='%s (1/1)' % lesson['lesson_name'], text=HTML(lesson['steps'][0]['text']), style=APP_STYLE, buttons=[('Back', None)]).run()
     else:
         curr_step = 0
@@ -165,13 +185,21 @@ def run_lesson(module_ind, lesson_ind):
                 else:
                     raise NotImplementedError("Need to implement challenge type: %s" % curr_step_data['challenge']['type'])
                 if solved:
-                    SAVE_DATA['completed'][module_ind][lesson_ind][curr_step] = True; save_game()
+                    try:
+                        SAVE_DATA['completed'][module_ind][lesson_ind][curr_step] = True
+                    except:
+                        SAVE_DATA = blank_save(); SAVE_DATA['completed'][module_ind][lesson_ind][curr_step] = True
+                    save_game()
                     if curr_step == len(lesson['steps'])-1:
                         curr_step = None
                     else:
                         curr_step = curr_step + 1
             else: # regular text step
-                SAVE_DATA['completed'][module_ind][lesson_ind][curr_step] = True; save_game()
+                try:
+                    SAVE_DATA['completed'][module_ind][lesson_ind][curr_step] = True
+                except:
+                    SAVE_DATA = blank_save(); SAVE_DATA['completed'][module_ind][lesson_ind][curr_step] = True
+                save_game()
                 buttons = list()
                 if curr_step != len(lesson['steps'])-1:
                     buttons.append(('Next',curr_step+1))
@@ -204,16 +232,16 @@ def run_app(s):
 # main program execution
 if __name__ == "__main__":
     # load lesson data
-    for module_folder in glob('%s/module*' % LESSONS_PATH):
+    for module_folder in sorted(glob('%s/module*' % LESSONS_PATH)):
         curr = load_json('%s/meta.json' % module_folder)
-        curr['lessons'] = [load_json(lesson_json) for lesson_json in glob('%s/lesson*.json' % module_folder)]
+        curr['lessons'] = [load_json(lesson_json) for lesson_json in sorted(glob('%s/lesson*.json' % module_folder))]
         LESSON_DATA.append(curr)
 
     # load save data
     if exists(SAVE_FILE_PATH):
         f = open(SAVE_FILE_PATH,'rb'); SAVE_DATA = pload(f); f.close(); APP_STYLE = SAVE_DATA['style']
     else:
-        SAVE_DATA = {'completed':[[[False for s in l['steps']] for l in m['lessons']] for m in LESSON_DATA], 'style':APP_STYLE}
+        SAVE_DATA = blank_save()
         makedirs(dirname(SAVE_FILE_PATH), exist_ok=True); save_game()
 
     # maximize terminal if possible (only supports Windows)
