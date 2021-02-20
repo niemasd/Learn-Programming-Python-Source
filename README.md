@@ -23,7 +23,7 @@ This open source game engine should work on any platform (not just Windows). To 
 6. Download [`game.py`](game.py) and [`universal.py`](universal.py) to the folder that was opened
 
 ## Step 2: Editing the Source Code to Remove Windows Dependencies
-1. Comment out (`#`) [line 220 of `game.py`](game.py#L220)
+1. Comment out (`#`) [line 248 of `game.py`](game.py#L248)
 2. On [line 22 of `universal.py`](universal.py#L22), replace `ALT+ENTER` with `F11`
 3. Comment out (`#`) [lines 108-138 of `universal.py`](universal.py#L108-L138)
     * `msvcrt` is a Windows-only module and is invoked by this in the start up
