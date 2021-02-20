@@ -4,7 +4,7 @@ from prompt_toolkit import HTML
 from prompt_toolkit.styles import Style
 
 # global constants
-VERSION = '1.0.9'
+VERSION = '1.0.12'
 LESSONS_PATH = "lesson_data"
 SAVE_FILE_PATH = "save/save.pkl"
 
